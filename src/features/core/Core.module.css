@@ -4,7 +4,8 @@
   font-weight: normal;
   text-align: center;
 }
-.core_signUp {
+
+.core_register {
   display: flex;
   flex-direction: column;
 }
@@ -14,12 +15,14 @@
   text-align: center;
   cursor: pointer;
 }
+
+/* paddingとh1タグのfont sizeによってheaderの高さを指定。heightの指定はなし。 */
 .core_header {
   /* scrollに応じて要素を浮かせる。 */
   position: sticky;
   top: 0;
   background-color: white;
-  padding: 20px;
+  padding: 20px 10px;
   border-bottom: 1px solid lightgray;
   /* img要素のはめ込みを指定。
     contain => 縦横比を維持しながらリサイズ。全体が見えるようにはめ込む。 */
@@ -28,6 +31,11 @@
   z-index: 1;
   justify-content: space-between;
 }
+
+.core_header_menu {
+  align-self: flex-end;
+}
+
 .core_btnModal {
   background-color: transparent;
   color: gray;
@@ -43,9 +51,11 @@
   display: flex;
   justify-content: flex-end;
 }
+
 .core_posts {
   padding: 20px;
 }
+
 .core_progress {
   margin-top: 15px;
   display: flex;

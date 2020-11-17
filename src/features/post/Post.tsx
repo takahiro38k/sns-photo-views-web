@@ -11,7 +11,11 @@ import { selectProfiles } from "../auth/authSlice";
 import { PROPS_POST } from "../types";
 import styles from "./Post.module.css";
 import {
-    fetchAsyncPatchLiked, fetchAsyncPostComment, fetchPostEnd, fetchPostStart, selectComments
+  fetchAsyncPatchLiked,
+  fetchAsyncPostComment,
+  fetchPostEnd,
+  fetchPostStart,
+  selectComments,
 } from "./postSlice";
 
 // 投稿に対するcommentのアバター画像を小さくするためのstyle
@@ -45,7 +49,7 @@ const Post: React.FC<PROPS_POST> = ({
 
   // 投稿したuserのprofileを抽出
   const prof = profiles.filter((prof) => {
-    return prof.userProfile === userPost;
+    return prof.user_id === userPost;
   });
 
   // 投稿に対するcommentの実行
@@ -80,8 +84,8 @@ const Post: React.FC<PROPS_POST> = ({
       <div className={styles.post}>
         <div className={styles.post_header}>
           {/* 投稿したuserのアバター情報 */}
-          <Avatar className={styles.post_avatar} src={prof[0]?.img} />
-          <h3>{prof[0]?.nickName}</h3>
+          <Avatar className={styles.post_avatar} src={prof[0]?.img_profile} />
+          <h3>{prof[0]?.nickname}</h3>
         </div>
         {/* 投稿された画像 */}
         <img className={styles.post_image} src={imageUrl} alt="" />
@@ -102,7 +106,7 @@ const Post: React.FC<PROPS_POST> = ({
             onChange={handlerLiked}
           />
           {/* いいねの隣に表示する投稿userのnickname */}
-          <strong> {prof[0]?.nickName}</strong> {title}
+          <strong> {prof[0]?.nickname}</strong> {title}
           {/* いいねをしたuserのアバター一覧 */}
           {/* max => アバター画像の表示上限。上限を超える分は"+n"の形式で表示される。 */}
           <AvatarGroup max={7}>
@@ -110,7 +114,7 @@ const Post: React.FC<PROPS_POST> = ({
               <Avatar
                 className={styles.post_avatarGroup}
                 key={like} // いいねをしたuserのidをkeyとする。
-                src={profiles.find((prof) => prof.userProfile === like)?.img}
+                src={profiles.find((prof) => prof.user_id === like)?.img_profile}
               />
             ))}
           </AvatarGroup>
@@ -128,9 +132,8 @@ const Post: React.FC<PROPS_POST> = ({
                    * 1st paramに指定したテスト関数を満たす最初の要素の値を返す。
                    */
                   // profileの一覧からcommentしたuserのidを調べ、アバター画像を取得。
-                  profiles.find(
-                    (prof) => prof.userProfile === comment.userComment
-                  )?.img
+                  profiles.find((prof) => prof.user_id === comment.userComment)
+                    ?.img_profile
                 }
                 className={classes.small}
               />
@@ -139,8 +142,8 @@ const Post: React.FC<PROPS_POST> = ({
                   {
                     // profileの一覧からcommentしたuserのidを調べ、nicknameを取得。
                     profiles.find(
-                      (prof) => prof.userProfile === comment.userComment
-                    )?.nickName
+                      (prof) => prof.user_id === comment.userComment
+                    )?.nickname
                   }
                 </strong>
                 {comment.text}

@@ -2,20 +2,41 @@ import React, { useEffect } from "react";
 import { MdAddAPhoto } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 
-import { Avatar, Badge, Button, CircularProgress, Grid } from "@material-ui/core";
+import {
+  Avatar,
+  Badge,
+  Button,
+  CircularProgress,
+  Grid,
+} from "@material-ui/core";
 import { createStyles, Theme, withStyles } from "@material-ui/core/styles";
 
 import { AppDispatch } from "../../app/store";
 import Auth from "../auth/Auth";
 import {
-    editNickname, fetchAsyncGetMyProf, fetchAsyncGetProfs, resetOpenProfile, resetOpenSignIn,
-    resetOpenSignUp, selectIsLoadingAuth, selectProfile, setOpenProfile, setOpenSignIn,
-    setOpenSignUp
+  editNickname,
+  fetchAsyncGetMyProf,
+  fetchAsyncGetProfs,
+  resetLoginError,
+  resetOpenLogin,
+  resetOpenProfile,
+  resetOpenRegister,
+  resetRegisterCorrect,
+  resetRegisterError,
+  selectIsLoadingAuth,
+  selectProfile,
+  setOpenLogin,
+  setOpenProfile,
+  setOpenRegister,
 } from "../auth/authSlice";
 import Post from "../post/Post";
 import {
-    fetchAsyncGetComments, fetchAsyncGetPosts, resetOpenNewPost, selectIsLoadingPost, selectPosts,
-    setOpenNewPost
+  fetchAsyncGetComments,
+  fetchAsyncGetPosts,
+  resetOpenNewPost,
+  selectIsLoadingPost,
+  selectPosts,
+  setOpenNewPost,
 } from "../post/postSlice";
 // cssをmodule化してimport。
 // https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/
@@ -68,13 +89,13 @@ const Core: React.FC = () => {
     const fetchBootLoader = async () => {
       // JWTがすでに設定されている場合
       if (localStorage.localJWT) {
-        // sign inのmodalをclose
-        dispatch(resetOpenSignIn());
-        // sign in userのprofileを取得
+        // login modalをclose
+        dispatch(resetOpenLogin());
+        // login userのprofileを取得
         const result = await dispatch(fetchAsyncGetMyProf());
-        // JWTが期限切れなどで認証できない場合、sign inのmodalを開き、このfuncを終了する。
+        // JWTが期限切れなどで認証できない場合、login modalを開き、このfuncを終了する。
         if (fetchAsyncGetMyProf.rejected.match(result)) {
-          dispatch(setOpenSignIn());
+          dispatch(setOpenLogin());
           return null;
         }
         // 投稿一覧取得
@@ -90,13 +111,18 @@ const Core: React.FC = () => {
 
   return (
     <div>
+      {/* modals */}
+      {/* 以下3つのcomponentsはすべてmodal。
+        状態管理によって表示するmodalを選定する。*/}
       <Auth />
       <EditProfile />
       <NewPost />
+
+      {/* header */}
       <div className={styles.core_header}>
         <h1 className={styles.core_title}>Photo Views</h1>
-        {/* sign inしている時(nickNameが存在する時)のみ表示 */}
-        {profile?.nickName ? (
+        {/* loginしている時(nicknameが存在する時)のみ表示 */}
+        {profile?.nickname ? (
           <>
             {/* 投稿button */}
             <button
@@ -124,8 +150,8 @@ const Core: React.FC = () => {
                   dispatch(resetOpenProfile());
                   // 新規投稿modalをoffにする。
                   dispatch(resetOpenNewPost());
-                  // sign in modalを開く。
-                  dispatch(setOpenSignIn());
+                  // login modalを開く。
+                  dispatch(setOpenLogin());
                 }}
               >
                 ログアウト
@@ -147,26 +173,31 @@ const Core: React.FC = () => {
                   }}
                   variant="dot"
                 >
-                  <Avatar alt="who?" src={profile.img} />{" "}
+                  <Avatar alt="who?" src={profile.img_profile} />{" "}
                 </StyledBadge>
               </button>
             </div>
           </>
         ) : (
-          // sign inしていない時のみ表示
-          <div>
+          // loginしていない時のみ表示
+          <div className={styles.core_header_menu}>
             <Button
               onClick={() => {
-                dispatch(setOpenSignIn());
-                dispatch(resetOpenSignUp());
+                dispatch(setOpenLogin());
+                dispatch(resetOpenRegister());
+                // messageが表示されている場合を考慮し、submitのmessageを初期化。
+                dispatch(resetLoginError());
               }}
             >
               ログイン
             </Button>
             <Button
               onClick={() => {
-                dispatch(setOpenSignUp());
-                dispatch(resetOpenSignIn());
+                dispatch(setOpenRegister());
+                dispatch(resetOpenLogin());
+                // messageが表示されている場合を考慮し、submitのmessageを初期化。
+                dispatch(resetRegisterCorrect());
+                dispatch(resetRegisterError());
               }}
             >
               新規登録
@@ -175,8 +206,9 @@ const Core: React.FC = () => {
         )}
       </div>
 
-      {/* sign inしている時だけ表示。 */}
-      {profile?.nickName && (
+      {/* 投稿一覧 */}
+      {/* loginしている時だけ表示。 */}
+      {profile?.nickname && (
         <>
           <div className={styles.core_posts}>
             <Grid container spacing={4}>
@@ -189,7 +221,7 @@ const Core: React.FC = () => {
                     <Post
                       postId={post.id}
                       title={post.title}
-                      loginId={profile.userProfile}
+                      loginId={profile.user_id}
                       userPost={post.userPost} // 投稿したuserのid
                       imageUrl={post.img}
                       liked={post.liked} // 投稿にいいねをしたuser idの配列

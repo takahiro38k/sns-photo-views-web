@@ -4,28 +4,66 @@
   font-weight: normal;
   text-align: center;
 }
+
+.auth_paragraph {
+  font-size: 15px;
+  margin-top: 25px;
+  margin-bottom: 20px;
+}
+
 .auth_error {
+  font-size: 15px;
   color: #ff00ff;
   text-align: center;
-  margin: 10px;
+  margin-top: 10px;
 }
-.auth_signUp {
+
+.auth_register {
   display: flex;
   flex-direction: column;
 }
+
 .auth_headerImage {
   /* img要素のはめ込みを指定。
     contain => 縦横比を維持しながらリサイズ。全体が見えるようにはめ込む。 */
   object-fit: contain;
 }
+
 .auth_text {
+  font-size: 15px;
   color: rgb(6, 153, 211);
   text-align: center;
   /* リンクカーソル */
   cursor: pointer;
 }
+.auth_text:hover {
+  text-decoration: underline;
+}
+
 .auth_progress {
-  margin-top: 15px;
+  margin-bottom: 15px;
   display: flex;
   justify-content: center;
+}
+
+.auth_submit_correct {
+  color: #219927;
+}
+
+.auth_submit_error {
+  color: #ff00ff;
+}
+
+.auth_guest_text {
+  font-size: 15px;
+  margin-bottom: 10px;
+}
+
+.auth_guest_btn {
+  font-size: 17px;
+  font-weight: bold;
+}
+
+.auth_divider {
+  margin-top: 30px;
 }

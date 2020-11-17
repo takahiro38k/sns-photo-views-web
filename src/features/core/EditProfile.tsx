@@ -17,11 +17,10 @@ const customStyles = {
   content: {
     top: "55%",
     left: "50%",
-
-    width: 280,
+    width: "85%",
+    maxWidth: 280,
     height: 220,
-    padding: "50px",
-
+    paddingTop: "30px",
     transform: "translate(-50%, -50%)",
   },
 };
@@ -36,7 +35,7 @@ const EditProfile: React.FC = () => {
   // profileのupdate buttonで実行
   const updateProfile = async (e: React.MouseEvent<HTMLElement>) => {
     e.preventDefault();
-    const packet = { id: profile.id, nickName: profile.nickName, img: image };
+    const packet = { id: profile.id, nickname: profile.nickname, img_profile: image };
 
     await dispatch(fetchCredStart());
     await dispatch(fetchAsyncUpdateProf(packet));
@@ -60,15 +59,15 @@ const EditProfile: React.FC = () => {
         }}
         style={customStyles}
       >
-        <form className={styles.core_signUp}>
-          <h1 className={styles.core_title}>Photo Views</h1>
+        <form className={styles.core_register}>
+          <h2 className={styles.core_title}>Profile</h2>
 
           <br />
           {/* nickname変更 */}
           <TextField
             placeholder="nickname"
             type="text"
-            value={profile?.nickName}
+            value={profile?.nickname}
             onChange={(e) => dispatch(editNickname(e.target.value))}
           />
 
@@ -89,7 +88,7 @@ const EditProfile: React.FC = () => {
           <br />
           <Button
             // nicknameが空の場合はbuttonを押せないぬ
-            disabled={!profile?.nickName}
+            disabled={!profile?.nickname}
             variant="contained"
             color="primary"
             type="submit"

@@ -5,10 +5,17 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../../app/store";
 import { PROPS_COMMENT, PROPS_LIKED, PROPS_NEWPOST } from "../types";
 
-const apiUrlPost = `${process.env.REACT_APP_DEV_API_URL}api/post/`;
-const apiUrlComment = `${process.env.REACT_APP_DEV_API_URL}api/comment/`;
+// top階層の.envで環境変数を設定。
+// REACT_APP_ で定義したものを環境変数として使用できる。
+const apiUrlPost = `${process.env.REACT_APP_LARAVEL_API_URL}/api/post`;
+const apiUrlComment = `${process.env.REACT_APP_LARAVEL_API_URL}/api/comment`;
 
-// 投稿の一覧を取得
+// 非同期関数
+// ※非同期関数はcreateSlice()の外に書く。
+// createAsyncThunk
+// https://redux-toolkit.js.org/api/createAsyncThunk
+
+// 投稿一覧取得
 export const fetchAsyncGetPosts = createAsyncThunk("post/get", async () => {
   const res = await axios.get(apiUrlPost, {
     headers: {
@@ -18,7 +25,7 @@ export const fetchAsyncGetPosts = createAsyncThunk("post/get", async () => {
   return res.data;
 });
 
-// 新規投稿作成
+// 投稿作成
 export const fetchAsyncNewPost = createAsyncThunk(
   "post/post",
   async (newPost: PROPS_NEWPOST) => {
@@ -98,7 +105,7 @@ export const fetchAsyncPatchLiked = createAsyncThunk(
   }
 );
 
-// コメント一覧を取得
+// コメント一覧取得
 export const fetchAsyncGetComments = createAsyncThunk(
   "comment/get",
   async () => {
@@ -124,6 +131,8 @@ export const fetchAsyncPostComment = createAsyncThunk(
   }
 );
 
+// createSlice
+// https://redux-toolkit.js.org/api/createSlice
 export const postSlice = createSlice({
   name: "post",
   initialState: {
@@ -137,7 +146,7 @@ export const postSlice = createSlice({
         id: 0,
         title: "",
         userPost: 0,
-        created_on: "",
+        created_at: "",
         img: "",
         liked: [0],
       },
@@ -152,7 +161,10 @@ export const postSlice = createSlice({
       },
     ],
   },
+  // reducers
+  // https://redux-toolkit.js.org/api/createSlice#reducers
   reducers: {
+    // 各reducerの引数は、stateのみ、またはstateとaction両方を持つことができる。
     fetchPostStart(state) {
       state.isLoadingPost = true;
     },
@@ -166,12 +178,16 @@ export const postSlice = createSlice({
       state.openNewPost = false;
     },
   },
-  // createAsyncThunkで定義した非同期関数の後続処理
+  // extraReducers
+  // https://redux-toolkit.js.org/api/createSlice#extrareducers
+  // 上記createAsyncThunkで定義した非同期処理の後続処理をreducerに組み込む。
   extraReducers: (builder) => {
+    // builder.addCase
+    // https://redux-toolkit.js.org/api/createReducer#builderaddcase
     builder.addCase(fetchAsyncGetPosts.fulfilled, (state, action) => {
+      // action.payload => createAsyncThunk()の2nd paramである非同期関数の返り値。
       return {
         ...state,
-        // action.payload => fetchAsyncGetPostsの返り値
         posts: action.payload,
       };
     });
@@ -204,6 +220,7 @@ export const postSlice = createSlice({
   },
 });
 
+// reducersをexport。
 export const {
   fetchPostStart,
   fetchPostEnd,
@@ -211,6 +228,9 @@ export const {
   resetOpenNewPost,
 } = postSlice.actions;
 
+// useSelectorでアクセスできるよう定義。
+// RootState => storeのすべてのsliceを含んだ型
+// post => src/app/store.tsのconfigureStore()で定義した名前
 export const selectIsLoadingPost = (state: RootState) =>
   state.post.isLoadingPost;
 export const selectOpenNewPost = (state: RootState) => state.post.openNewPost;

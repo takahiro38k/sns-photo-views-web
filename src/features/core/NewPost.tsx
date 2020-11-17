@@ -16,11 +16,10 @@ const customStyles = {
   content: {
     top: "55%",
     left: "50%",
-
-    width: 280,
+    width: "85%",
+    maxWidth: 280,
     height: 220,
-    padding: "50px",
-
+    paddingTop: "30px",
     transform: "translate(-50%, -50%)",
   },
 };
@@ -60,8 +59,8 @@ const NewPost: React.FC = () => {
         }}
         style={customStyles}
       >
-        <form className={styles.core_signUp}>
-          <h1 className={styles.core_title}>Photo Views</h1>
+        <form className={styles.core_register}>
+          <h2 className={styles.core_title}>Photo</h2>
 
           <br />
           <TextField

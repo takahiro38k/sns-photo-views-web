@@ -19,12 +19,13 @@ export interface PROPS_AUTHEN {
 
 export interface PROPS_PROFILE {
   id: number;
-  nickName: string;
-  img: File | null;
+  nickname: string;
+  img_profile: File | null;
 }
 
-export interface PROPS_NICKNAME {
-  nickName: string;
+export interface PROPS_INITPROFILE {
+  id: number;
+  nickname: string;
 }
 
 /**
