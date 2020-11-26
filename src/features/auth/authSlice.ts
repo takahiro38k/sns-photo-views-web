@@ -264,7 +264,7 @@ export const authSlice = createSlice({
     // JWTの取得が成功(fulfilled)した時、localStorageにJWTの値を格納する。
     builder.addCase(fetchAsyncLogin.fulfilled, (state, action) => {
       if (localStorage.localJWT) {
-        localStorage.removeItem("localJWT")
+        localStorage.removeItem("localJWT");
       }
       // action.payload => createAsyncThunk()の2nd paramである非同期関数の返り値。
       localStorage.setItem("localJWT", action.payload.access_token);
@@ -329,7 +329,8 @@ export const selectRegisterCorrect = (state: RootState) =>
 export const selectRegisterError = (state: RootState) =>
   state.auth.registerError;
 export const selectLoginError = (state: RootState) => state.auth.loginError;
-export const selectIsLoadingProfile = (state: RootState) => state.auth.isLoadingProfile;
+export const selectIsLoadingProfile = (state: RootState) =>
+  state.auth.isLoadingProfile;
 export const selectOpenProfile = (state: RootState) => state.auth.openProfile;
 export const selectProfile = (state: RootState) => state.auth.myprofile;
 export const selectProfiles = (state: RootState) => state.auth.profiles;

@@ -1,13 +1,7 @@
 import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 
-import {
-  Avatar,
-  Button,
-  Checkbox,
-  Divider,
-  CircularProgress,
-} from "@material-ui/core";
+import { Avatar, Button, Checkbox, CircularProgress, Divider } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { Favorite, FavoriteBorder } from "@material-ui/icons";
 import AvatarGroup from "@material-ui/lab/AvatarGroup";
@@ -17,11 +11,7 @@ import { selectProfiles } from "../auth/authSlice";
 import { PROPS_POST } from "../types";
 import styles from "./Post.module.css";
 import {
-  fetchAsyncPostLike,
-  fetchAsyncPostComment,
-  selectComments,
-  selectLikes,
-  fetchAsyncDeleteLike,
+    fetchAsyncDeleteLike, fetchAsyncPostComment, fetchAsyncPostLike, selectComments, selectLikes
 } from "./postSlice";
 
 // 投稿に対するcommentのアバター画像を小さくするためのstyle

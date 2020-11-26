@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { MdAddAPhoto } from "react-icons/md";
 import Modal from "react-modal";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,12 +7,8 @@ import { Button, IconButton, TextField } from "@material-ui/core";
 
 import { AppDispatch } from "../../app/store";
 import {
-  fetchAsyncUpdateProf,
-  resetOpenProfile,
-  selectOpenProfile,
-  selectProfile,
-  fetchProfileStart,
-  fetchProfileEnd,
+    fetchAsyncUpdateProf, fetchProfileEnd, fetchProfileStart, resetOpenProfile, selectOpenProfile,
+    selectProfile
 } from "../auth/authSlice";
 import { File } from "../types";
 import styles from "./Core.module.css";
@@ -35,7 +31,6 @@ const EditProfile: React.FC = () => {
   const profile = useSelector(selectProfile);
   const [nickname, setNickname] = useState(profile.nickname);
   const [image, setImage] = useState<File | null>(null);
-
 
   // console.log("profile.nickname: ", profile.nickname);
   // console.log("nickname: ", nickname);

@@ -7,11 +7,7 @@ import { Button, IconButton, TextField } from "@material-ui/core";
 
 import { AppDispatch } from "../../app/store";
 import {
-  fetchAsyncNewPost,
-  fetchPostEnd,
-  fetchPostStart,
-  resetOpenNewPost,
-  selectOpenNewPost,
+    fetchAsyncNewPost, fetchPostEnd, fetchPostStart, resetOpenNewPost, selectOpenNewPost
 } from "../post/postSlice";
 import { File } from "../types";
 import styles from "./Core.module.css";

@@ -4,44 +4,18 @@ import Modal from "react-modal";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 
-import {
-  Button,
-  CircularProgress,
-  Divider,
-  TextField,
-} from "@material-ui/core";
+import { Button, CircularProgress, Divider, TextField } from "@material-ui/core";
 
 import { AppDispatch } from "../../app/store";
-import {
-  fetchAsyncGetComments,
-  fetchAsyncGetLikes,
-  fetchAsyncGetPosts,
-} from "../post/postSlice";
+import { fetchAsyncGetComments, fetchAsyncGetLikes, fetchAsyncGetPosts } from "../post/postSlice";
 import styles from "./Auth.module.css";
 import {
-  fetchAsyncCreateProf,
-  fetchAsyncGetMyProf,
-  fetchAsyncGetProfs,
-  fetchAsyncLogin,
-  fetchAsyncRegister,
-  fetchCredEnd,
-  fetchCredStart,
-  resetLoginError,
-  resetOpenLogin,
-  resetRegisterCorrect,
-  resetRegisterError,
-  selectIsLoadingAuth,
-  selectLoginError,
-  selectOpenLogin,
-  selectOpenRegister,
-  selectRegisterCorrect,
-  selectRegisterError,
-  setLoginError,
-  setRegisterCorrect,
-  setRegisterError,
-  fetchCredGuestStart,
-  fetchCredGuestEnd,
-  selectIsGuestLoadingAuth,
+    fetchAsyncCreateProf, fetchAsyncGetMyProf, fetchAsyncGetProfs, fetchAsyncLogin,
+    fetchAsyncRegister, fetchCredEnd, fetchCredGuestEnd, fetchCredGuestStart, fetchCredStart,
+    resetLoginError, resetOpenLogin, resetRegisterCorrect, resetRegisterError,
+    selectIsGuestLoadingAuth, selectIsLoadingAuth, selectLoginError, selectOpenLogin,
+    selectOpenRegister, selectRegisterCorrect, selectRegisterError, setLoginError,
+    setRegisterCorrect, setRegisterError
 } from "./authSlice";
 
 // top階層の.envで環境変数を設定。

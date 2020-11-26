@@ -3,52 +3,23 @@ import { MdAddAPhoto } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 
 import {
-  Avatar,
-  Badge,
-  Button,
-  CircularProgress,
-  ClickAwayListener,
-  Grid,
-  Grow,
-  MenuItem,
-  MenuList,
-  Paper,
-  Popper,
+    Avatar, Badge, Button, CircularProgress, ClickAwayListener, Grid, Grow, MenuItem, MenuList,
+    Paper, Popper
 } from "@material-ui/core";
 import { createStyles, Theme, withStyles } from "@material-ui/core/styles";
 
 import { AppDispatch } from "../../app/store";
 import Auth from "../auth/Auth";
 import {
-  editNickname,
-  fetchAsyncGetMyProf,
-  fetchAsyncGetProfs,
-  fetchAuthChecked,
-  fetchCredEnd,
-  fetchCredStart,
-  resetLoginError,
-  resetOpenLogin,
-  resetOpenProfile,
-  resetOpenRegister,
-  resetRegisterCorrect,
-  resetRegisterError,
-  selectIsAuthChecked,
-  selectIsLoadingAuth,
-  selectProfile,
-  setOpenLogin,
-  setOpenProfile,
-  setOpenRegister,
-  selectIsLoadingProfile,
+    editNickname, fetchAsyncGetMyProf, fetchAsyncGetProfs, fetchAuthChecked, fetchCredEnd,
+    fetchCredStart, resetLoginError, resetOpenLogin, resetOpenProfile, resetOpenRegister,
+    resetRegisterCorrect, resetRegisterError, selectIsAuthChecked, selectIsLoadingAuth,
+    selectIsLoadingProfile, selectProfile, setOpenLogin, setOpenProfile, setOpenRegister
 } from "../auth/authSlice";
 import Post from "../post/Post";
 import {
-  fetchAsyncGetComments,
-  fetchAsyncGetLikes,
-  fetchAsyncGetPosts,
-  resetOpenNewPost,
-  selectIsLoadingPost,
-  selectPosts,
-  setOpenNewPost,
+    fetchAsyncGetComments, fetchAsyncGetLikes, fetchAsyncGetPosts, resetOpenNewPost,
+    selectIsLoadingPost, selectPosts, setOpenNewPost
 } from "../post/postSlice";
 // cssをmodule化してimport。
 // https://create-react-app.dev/docs/adding-a-css-modules-stylesheet/
