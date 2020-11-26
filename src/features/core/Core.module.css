@@ -1,28 +1,10 @@
-.core_title {
-  /* google fontを適用。 */
-  font-family: "Playball", cursive;
-  font-weight: normal;
-  text-align: center;
-}
-
-.core_register {
-  display: flex;
-  flex-direction: column;
-}
-
-.core_text {
-  color: rgb(6, 153, 211);
-  text-align: center;
-  cursor: pointer;
-}
-
-/* paddingとh1タグのfont sizeによってheaderの高さを指定。heightの指定はなし。 */
 .core_header {
+  padding: 0 7px 0 13px;
+  height: 63px;
   /* scrollに応じて要素を浮かせる。 */
   position: sticky;
   top: 0;
   background-color: white;
-  padding: 20px 10px;
   border-bottom: 1px solid lightgray;
   /* img要素のはめ込みを指定。
     contain => 縦横比を維持しながらリサイズ。全体が見えるようにはめ込む。 */
@@ -30,10 +12,57 @@
   display: flex;
   z-index: 1;
   justify-content: space-between;
+  align-items: center;
 }
 
-.core_header_menu {
-  align-self: flex-end;
+.core_title {
+  /* google fontを適用。 */
+  font-family: "Playball", cursive;
+  font-weight: normal;
+  text-align: center;
+}
+
+.core_menu {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.core_menu_avatar {
+  margin-left: 10px;
+}
+
+.core_menu_profileProgress {
+  /* 表示がずれないよう、Avatar画像buttonの幅に合わせる。 */
+  width: 64px;
+  margin-left: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.core_menu_postProgress {
+  /* 表示がずれないよう、投稿button(カメラicon)の幅に合わせる。 */
+  width: 52px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.core_register {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 25px;
+}
+
+.core_text {
+  color: #0699d3;
+  text-align: center;
+  cursor: pointer;
+}
+
+.core_paragraph {
+  margin-top: 15px;
 }
 
 .core_btnModal {
@@ -47,17 +76,19 @@
   cursor: pointer;
 }
 
-.core_logout {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .core_posts {
-  padding: 20px;
+  padding: 15px;
 }
 
 .core_progress {
-  margin-top: 15px;
+  margin-top: 20px;
   display: flex;
   justify-content: center;
+}
+
+.core_progress_text {
+  margin-top: 15px;
+  font-size: 13px;
+  color: #2414bb;
+  text-align: center;
 }

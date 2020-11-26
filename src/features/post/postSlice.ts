@@ -7,8 +7,9 @@ import { PROPS_COMMENT, PROPS_LIKED, PROPS_NEWPOST } from "../types";
 
 // top階層の.envで環境変数を設定。
 // REACT_APP_ で定義したものを環境変数として使用できる。
-const apiUrlPost = `${process.env.REACT_APP_LARAVEL_API_URL}/api/post`;
-const apiUrlComment = `${process.env.REACT_APP_LARAVEL_API_URL}/api/comment`;
+const apiUrlPost = `${process.env.REACT_APP_LARAVEL_API_URL}/api/posts`;
+const apiUrlComment = `${process.env.REACT_APP_LARAVEL_API_URL}/api/comments`;
+const apiUrlLike = `${process.env.REACT_APP_LARAVEL_API_URL}/api/likes`;
 
 // 非同期関数
 // ※非同期関数はcreateSlice()の外に書く。
@@ -16,10 +17,11 @@ const apiUrlComment = `${process.env.REACT_APP_LARAVEL_API_URL}/api/comment`;
 // https://redux-toolkit.js.org/api/createAsyncThunk
 
 // 投稿一覧取得
-export const fetchAsyncGetPosts = createAsyncThunk("post/get", async () => {
+export const fetchAsyncGetPosts = createAsyncThunk("posts/get", async () => {
   const res = await axios.get(apiUrlPost, {
     headers: {
-      Authorization: `JWT ${localStorage.localJWT}`,
+      // prettier-ignore
+      "Authorization": `Bearer ${localStorage.localJWT}`,
     },
   });
   return res.data;
@@ -42,63 +44,18 @@ export const fetchAsyncNewPost = createAsyncThunk(
     uploadData.append("title", newPost.title);
     /**
      * formData.append(name, blob, fileName)
-     * フィールドを追加します。3つ目の引数 fileName はファイル名を設定します
-     * (フィールド名ではありません)。ファイルシステムでのファイル名です。
+     * フィールドを追加。3つ目の引数 fileName はファイル名を設定する(フィールド名ではない)。
      * 参照
      * https://ja.javascript.info/formdata
      */
+    // imgを追加(必須項目)。
     newPost.img && uploadData.append("img", newPost.img, newPost.img.name);
-    // resには新規投稿のobjectデータが返ってくる。
+
     const res = await axios.post(apiUrlPost, uploadData, {
       headers: {
         "Content-Type": "application/json",
-        Authorization: `JWT ${localStorage.localJWT}`,
-      },
-    });
-    return res.data;
-  }
-);
-
-// 投稿のいいねを更新
-export const fetchAsyncPatchLiked = createAsyncThunk(
-  "post/patch",
-  async (liked: PROPS_LIKED) => {
-    const currentLiked = liked.current;
-    // uploadするデータの箱。
-    const uploadData = new FormData();
-
-    // すでにいいねしている場合、解除する。
-    let isOverlapped = false;
-    // 依存のid配列の要素にいいねしたuserのidがあるかcheck。
-    currentLiked.forEach((current) => {
-      if (current === liked.new) {
-        isOverlapped = true;
-      } else {
-        uploadData.append("liked", String(current));
-      }
-    });
-
-    // いいねしていない投稿にいいねした場合
-    if (!isOverlapped) {
-      uploadData.append("liked", String(liked.new));
-      // すでにいいねしていて、そのいいねが自分なので、解除に合わせて空配列をputする場合。
-    } else if (currentLiked.length === 1) {
-      uploadData.append("title", liked.title);
-      // uploadData => この分岐では空配列となる。
-      const res = await axios.put(`${apiUrlPost}${liked.id}/`, uploadData, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `JWT ${localStorage.localJWT}`,
-        },
-      });
-      // 以降の処理はせず非同期関数を終了。
-      return res.data;
-    }
-    // 新規いいねを加えた配列 or 解除したいいね以外のいいね配列 をputする。
-    const res = await axios.patch(`${apiUrlPost}${liked.id}/`, uploadData, {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `JWT ${localStorage.localJWT}`,
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
       },
     });
     return res.data;
@@ -107,11 +64,12 @@ export const fetchAsyncPatchLiked = createAsyncThunk(
 
 // コメント一覧取得
 export const fetchAsyncGetComments = createAsyncThunk(
-  "comment/get",
+  "comments/get",
   async () => {
     const res = await axios.get(apiUrlComment, {
       headers: {
-        Authorization: `JWT ${localStorage.localJWT}`,
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
       },
     });
     return res.data;
@@ -124,9 +82,58 @@ export const fetchAsyncPostComment = createAsyncThunk(
   async (comment: PROPS_COMMENT) => {
     const res = await axios.post(apiUrlComment, comment, {
       headers: {
-        Authorization: `JWT ${localStorage.localJWT}`,
+        "Content-Type": "application/json",
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
       },
     });
+    return res.data;
+  }
+);
+
+// お気に入り一覧取得
+export const fetchAsyncGetLikes = createAsyncThunk("likes/get", async () => {
+  const res = await axios.get(apiUrlLike, {
+    headers: {
+      // prettier-ignore
+      "Authorization": `Bearer ${localStorage.localJWT}`,
+    },
+  });
+  return res.data;
+});
+
+// お気に入り登録
+export const fetchAsyncPostLike = createAsyncThunk(
+  "like/post",
+  async (like: PROPS_LIKED) => {
+    const res = await axios.post(apiUrlLike, like, {
+      headers: {
+        "Content-Type": "application/json",
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
+      },
+    });
+    return res.data;
+  }
+);
+
+// お気に入り削除
+export const fetchAsyncDeleteLike = createAsyncThunk(
+  "like/delete",
+  async (like: PROPS_LIKED) => {
+    const res = await axios.delete(
+      `${apiUrlLike}/${like.post}-${like.loginId}`,
+      // deleteはpostなどとは違い、2nd paramにdataを指定して渡せない。
+      // headersなどと同じように、objectの中にdataプロパティとして格納すると渡すことができる。
+      {
+        data: { like },
+        headers: {
+          "Content-Type": "application/json",
+          // prettier-ignore
+          "Authorization": `Bearer ${localStorage.localJWT}`,
+        },
+      }
+    );
     return res.data;
   }
 );
@@ -136,7 +143,7 @@ export const fetchAsyncPostComment = createAsyncThunk(
 export const postSlice = createSlice({
   name: "post",
   initialState: {
-    // 投稿やコメントの進行状態
+    // 投稿の進行状態
     isLoadingPost: false,
     // 投稿modalの状態
     openNewPost: false,
@@ -144,20 +151,31 @@ export const postSlice = createSlice({
     posts: [
       {
         id: 0,
+        user_id: 0,
         title: "",
-        userPost: 0,
+        img_post: "",
         created_at: "",
-        img: "",
-        liked: [0],
+        updated_at: "",
       },
     ],
     // コメント
     comments: [
       {
-        id: 0,
+        user_id: 0,
+        post_id: 0,
         text: "",
-        userComment: 0,
-        post: 0,
+        updated_at: "",
+        created_at: "",
+        id: 0,
+      },
+    ],
+    // お気に入り
+    likes: [
+      {
+        user_id: 0,
+        post_id: 0,
+        updated_at: "",
+        created_at: "",
       },
     ],
   },
@@ -165,12 +183,14 @@ export const postSlice = createSlice({
   // https://redux-toolkit.js.org/api/createSlice#reducers
   reducers: {
     // 各reducerの引数は、stateのみ、またはstateとaction両方を持つことができる。
+    // 投稿の進行状態管理
     fetchPostStart(state) {
       state.isLoadingPost = true;
     },
     fetchPostEnd(state) {
       state.isLoadingPost = false;
     },
+    // 投稿modalの状態管理
     setOpenNewPost(state) {
       state.openNewPost = true;
     },
@@ -184,6 +204,7 @@ export const postSlice = createSlice({
   extraReducers: (builder) => {
     // builder.addCase
     // https://redux-toolkit.js.org/api/createReducer#builderaddcase
+    // 投稿一覧取得
     builder.addCase(fetchAsyncGetPosts.fulfilled, (state, action) => {
       // action.payload => createAsyncThunk()の2nd paramである非同期関数の返り値。
       return {
@@ -191,29 +212,49 @@ export const postSlice = createSlice({
         posts: action.payload,
       };
     });
+    // 投稿作成
     builder.addCase(fetchAsyncNewPost.fulfilled, (state, action) => {
       return {
         ...state,
         posts: [...state.posts, action.payload],
       };
     });
+    // コメント一覧取得
     builder.addCase(fetchAsyncGetComments.fulfilled, (state, action) => {
       return {
         ...state,
         comments: action.payload,
       };
     });
+    // コメント作成
     builder.addCase(fetchAsyncPostComment.fulfilled, (state, action) => {
       return {
         ...state,
         comments: [...state.comments, action.payload],
       };
     });
-    builder.addCase(fetchAsyncPatchLiked.fulfilled, (state, action) => {
+    // お気に入り一覧取得
+    builder.addCase(fetchAsyncGetLikes.fulfilled, (state, action) => {
       return {
         ...state,
-        posts: state.posts.map((post) =>
-          post.id === action.payload.id ? action.payload : post
+        likes: action.payload,
+      };
+    });
+    // お気に入り登録
+    builder.addCase(fetchAsyncPostLike.fulfilled, (state, action) => {
+      return {
+        ...state,
+        likes: [...state.likes, action.payload],
+      };
+    });
+    // お気に入り削除
+    builder.addCase(fetchAsyncDeleteLike.fulfilled, (state, action) => {
+      return {
+        ...state,
+        likes: state.likes.filter(
+          (like) =>
+            like.user_id !== action.payload.loginId ||
+            like.post_id !== action.payload.post
         ),
       };
     });
@@ -236,5 +277,6 @@ export const selectIsLoadingPost = (state: RootState) =>
 export const selectOpenNewPost = (state: RootState) => state.post.openNewPost;
 export const selectPosts = (state: RootState) => state.post.posts;
 export const selectComments = (state: RootState) => state.post.comments;
+export const selectLikes = (state: RootState) => state.post.likes;
 
 export default postSlice.reducer;

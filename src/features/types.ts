@@ -37,19 +37,16 @@ export interface PROPS_NEWPOST {
 }
 
 export interface PROPS_LIKED {
+  // login中のuser id
+  loginId: number;
   // 投稿のid
-  id: number;
-  // 投稿のtitle
-  title: string;
-  // 既存のいいねuserのid
-  current: number[];
-  // 新規のいいねuserのid
-  new: number;
+  post: number;
 }
 
 export interface PROPS_COMMENT {
+  // コメント
   text: string;
-  // 対象の投稿
+  // 対象の投稿のid
   post: number;
 }
 
@@ -63,8 +60,8 @@ export interface PROPS_POST {
   loginId: number;
   // 投稿したuserのid
   userPost: number;
+  // 投稿のtitle
   title: string;
+  // 投稿画像のURL
   imageUrl: string;
-  // 投稿にいいねをしたuserのid
-  liked: number[];
 }

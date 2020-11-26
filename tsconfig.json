@@ -20,6 +20,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react",
+    "removeComments": true, // コメントを削除
     // targetがes3とes5の時のみ使用可能。es2015(es6)以降の構文でエラーが出力されるのを防ぐ。
     // "downlevelIteration": true,
   },

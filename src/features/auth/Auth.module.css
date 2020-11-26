@@ -6,13 +6,11 @@
 }
 
 .auth_paragraph {
-  font-size: 15px;
   margin-top: 25px;
   margin-bottom: 20px;
 }
 
 .auth_error {
-  font-size: 15px;
   color: #ff00ff;
   text-align: center;
   margin-top: 10px;
@@ -30,8 +28,7 @@
 }
 
 .auth_text {
-  font-size: 15px;
-  color: rgb(6, 153, 211);
+  color: #0699d3;
   text-align: center;
   /* リンクカーソル */
   cursor: pointer;
@@ -55,7 +52,6 @@
 }
 
 .auth_guest_text {
-  font-size: 15px;
   margin-bottom: 10px;
 }
 

@@ -23,7 +23,7 @@ export const fetchAsyncLogin = createAsyncThunk(
       headers: {
         "Content-Type": "application/json",
       },
-    })
+    });
     // JWTのtokenを返す。
     return res.data;
   }
@@ -51,7 +51,8 @@ export const fetchAsyncCreateProf = createAsyncThunk(
       headers: {
         "Content-Type": "application/json",
         // JWTによる認証
-        Authorization: `Bearer ${localStorage.localJWT}`,
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
       },
     });
     return res.data;
@@ -62,20 +63,39 @@ export const fetchAsyncCreateProf = createAsyncThunk(
 export const fetchAsyncUpdateProf = createAsyncThunk(
   "profile/put",
   async (profile: PROPS_PROFILE) => {
+    /**
+     * FormData()
+     * サーバーにデータを送信する際に使用するbuilt-inコンストラクタ。下記2とおりの使い方がある。
+     *   1. フォームの内容をキャプチャする
+     *   2. 空の FormData インスタンスを作成して、それにデータを設定、変更する。
+     * 今回は2の使い方。
+     * インスタンス化したら append() メソッドを呼び出すことでフィールドを追加できる。
+     */
+    // uploadするデータの箱。
     const uploadData = new FormData();
     uploadData.append("nickname", profile.nickname);
+    /**
+     * formData.append(name, blob, fileName)
+     * フィールドを追加。3つ目の引数 fileName はファイル名を設定する(フィールド名ではない)。
+     * 参照
+     * https://ja.javascript.info/formdata
+     */
     // imgがある場合のみ、追加。
-    profile.img_profile && uploadData.append("img", profile.img_profile, profile.img_profile.name);
-    const res = await axios.put(
-      `${apiUrl}/api/profile/${profile.id}/`,
-      uploadData,
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.localJWT}`,
-        },
-      }
-    );
+    profile.img_profile &&
+      uploadData.append("img", profile.img_profile, profile.img_profile.name);
+
+    // !!!!! WARNING !!!!!
+    // 本来はPUTメソッドだが、laravel(php)の仕様により、PUTだとFormDataの値が空になってしまう。
+    // よってPOSTメソッドを使い、下記の"X-HTTP-Method-Override"headerでPUTに移行する。
+    const res = await axios.post(`${apiUrl}/api/profiles/me`, uploadData, {
+      headers: {
+        // "Content-Type": "multipart/form-data",
+        // "Content-Type": "application/json",
+        "X-HTTP-Method-Override": "PUT",
+        // prettier-ignore
+        "Authorization": `Bearer ${localStorage.localJWT}`,
+      },
+    });
     return res.data;
   }
 );
@@ -84,7 +104,8 @@ export const fetchAsyncUpdateProf = createAsyncThunk(
 export const fetchAsyncGetMyProf = createAsyncThunk("profile/get", async () => {
   const res = await axios.get(`${apiUrl}/api/profiles/me`, {
     headers: {
-      Authorization: `Bearer ${localStorage.localJWT}`,
+      // prettier-ignore
+      "Authorization": `Bearer ${localStorage.localJWT}`,
     },
   });
   return res.data;
@@ -94,7 +115,8 @@ export const fetchAsyncGetMyProf = createAsyncThunk("profile/get", async () => {
 export const fetchAsyncGetProfs = createAsyncThunk("profiles/get", async () => {
   const res = await axios.get(`${apiUrl}/api/profiles`, {
     headers: {
-      Authorization: `Bearer ${localStorage.localJWT}`,
+      // prettier-ignore
+      "Authorization": `Bearer ${localStorage.localJWT}`,
     },
   });
   return res.data;
@@ -117,8 +139,12 @@ export const authSlice = createSlice({
     loginError: false,
     // profile modal toggle
     openProfile: false,
-    // api loading toggle
+    // api auth loading toggle
     isLoadingAuth: false,
+    // ブラウザ起動時のauth checkが済んだらtrue
+    isAuthChecked: false,
+    // profile apiアクセス中にtrue
+    isLoadingProfile: false,
     myprofile: {
       id: 0,
       user_id: 0,
@@ -148,6 +174,14 @@ export const authSlice = createSlice({
     },
     fetchCredEnd(state) {
       state.isLoadingAuth = false;
+    },
+
+    // api auth check制御(ページを開いた直後のauth check)
+    fetchAuthChecked(state) {
+      state.isAuthChecked = true;
+    },
+    fetchAuthUnchecked(state) {
+      state.isAuthChecked = false;
     },
 
     // login modal制御
@@ -190,6 +224,14 @@ export const authSlice = createSlice({
       state.loginError = false;
     },
 
+    // profile loading制御
+    fetchProfileStart(state) {
+      state.isLoadingProfile = true;
+    },
+    fetchProfileEnd(state) {
+      state.isLoadingProfile = false;
+    },
+
     // profile modal制御
     setOpenProfile(state) {
       state.openProfile = true;
@@ -211,6 +253,9 @@ export const authSlice = createSlice({
     // https://redux-toolkit.js.org/api/createReducer#builderaddcase
     // JWTの取得が成功(fulfilled)した時、localStorageにJWTの値を格納する。
     builder.addCase(fetchAsyncLogin.fulfilled, (state, action) => {
+      if (localStorage.localJWT) {
+        localStorage.removeItem("localJWT")
+      }
       // action.payload => createAsyncThunk()の2nd paramである非同期関数の返り値。
       localStorage.setItem("localJWT", action.payload.access_token);
     });
@@ -226,7 +271,7 @@ export const authSlice = createSlice({
     builder.addCase(fetchAsyncUpdateProf.fulfilled, (state, action) => {
       state.myprofile = action.payload;
       state.profiles = state.profiles.map((prof) =>
-        // 変更箇所のみ更新
+        // profile一覧からuserのprofileのみ更新。
         prof.id === action.payload.id ? action.payload : prof
       );
     });
@@ -237,6 +282,8 @@ export const authSlice = createSlice({
 export const {
   fetchCredStart,
   fetchCredEnd,
+  fetchAuthChecked,
+  fetchAuthUnchecked,
   setOpenLogin,
   resetOpenLogin,
   setOpenRegister,
@@ -250,6 +297,8 @@ export const {
   editNickname,
   setLoginError,
   resetLoginError,
+  fetchProfileStart,
+  fetchProfileEnd,
 } = authSlice.actions;
 
 // useSelectorでアクセスできるよう定義。
@@ -257,11 +306,16 @@ export const {
 // auth => src/app/store.tsのconfigureStore()で定義した名前
 export const selectIsLoadingAuth = (state: RootState) =>
   state.auth.isLoadingAuth;
+export const selectIsAuthChecked = (state: RootState) =>
+  state.auth.isAuthChecked;
 export const selectOpenLogin = (state: RootState) => state.auth.openLogin;
-export const selectOpenRegister  = (state: RootState) => state.auth.openRegister;
-export const selectRegisterCorrect = (state: RootState) => state.auth.registerCorrect;
-export const selectRegisterError = (state: RootState) => state.auth.registerError;
+export const selectOpenRegister = (state: RootState) => state.auth.openRegister;
+export const selectRegisterCorrect = (state: RootState) =>
+  state.auth.registerCorrect;
+export const selectRegisterError = (state: RootState) =>
+  state.auth.registerError;
 export const selectLoginError = (state: RootState) => state.auth.loginError;
+export const selectIsLoadingProfile = (state: RootState) => state.auth.isLoadingProfile;
 export const selectOpenProfile = (state: RootState) => state.auth.openProfile;
 export const selectProfile = (state: RootState) => state.auth.myprofile;
 export const selectProfiles = (state: RootState) => state.auth.profiles;

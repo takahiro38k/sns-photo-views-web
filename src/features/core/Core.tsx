@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { MdAddAPhoto } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -7,7 +7,13 @@ import {
   Badge,
   Button,
   CircularProgress,
+  ClickAwayListener,
   Grid,
+  Grow,
+  MenuItem,
+  MenuList,
+  Paper,
+  Popper,
 } from "@material-ui/core";
 import { createStyles, Theme, withStyles } from "@material-ui/core/styles";
 
@@ -17,21 +23,27 @@ import {
   editNickname,
   fetchAsyncGetMyProf,
   fetchAsyncGetProfs,
+  fetchAuthChecked,
+  fetchCredEnd,
+  fetchCredStart,
   resetLoginError,
   resetOpenLogin,
   resetOpenProfile,
   resetOpenRegister,
   resetRegisterCorrect,
   resetRegisterError,
+  selectIsAuthChecked,
   selectIsLoadingAuth,
   selectProfile,
   setOpenLogin,
   setOpenProfile,
   setOpenRegister,
+  selectIsLoadingProfile,
 } from "../auth/authSlice";
 import Post from "../post/Post";
 import {
   fetchAsyncGetComments,
+  fetchAsyncGetLikes,
   fetchAsyncGetPosts,
   resetOpenNewPost,
   selectIsLoadingPost,
@@ -80,31 +92,72 @@ const StyledBadge = withStyles((theme: Theme) =>
 
 const Core: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
+
   const profile = useSelector(selectProfile);
   const posts = useSelector(selectPosts);
   const isLoadingPost = useSelector(selectIsLoadingPost);
   const isLoadingAuth = useSelector(selectIsLoadingAuth);
+  const isAuthChecked = useSelector(selectIsAuthChecked);
+  const isLoadingProfile = useSelector(selectIsLoadingProfile);
+
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef<HTMLButtonElement>(null);
+
+  const handleToggle = () => {
+    setOpen((prevOpen) => !prevOpen);
+  };
+
+  const handleClose = (event: React.MouseEvent<EventTarget>) => {
+    if (
+      anchorRef.current &&
+      anchorRef.current.contains(event.target as HTMLElement)
+    ) {
+      return;
+    }
+    setOpen(false);
+  };
+
+  function handleListKeyDown(event: React.KeyboardEvent) {
+    if (event.key === "Tab") {
+      event.preventDefault();
+      setOpen(false);
+    }
+  }
 
   useEffect(() => {
     const fetchBootLoader = async () => {
       // JWTがすでに設定されている場合
       if (localStorage.localJWT) {
+        // 認証状態をon。
+        dispatch(fetchCredStart());
         // login modalをclose
         dispatch(resetOpenLogin());
         // login userのprofileを取得
         const result = await dispatch(fetchAsyncGetMyProf());
-        // JWTが期限切れなどで認証できない場合、login modalを開き、このfuncを終了する。
         if (fetchAsyncGetMyProf.rejected.match(result)) {
+          // JWTが期限切れなどで認証できない場合、login modalを開く。
           dispatch(setOpenLogin());
-          return null;
+        } else {
+          // 並列処理
+          // https://qiita.com/rana_kualu/items/e6c5c0e4f60b0d18799d#lets-fix-the-examples
+          // profile一覧取得
+          const getProfs = dispatch(fetchAsyncGetProfs());
+          // 投稿一覧取得
+          const getPosts = dispatch(fetchAsyncGetPosts());
+          // comment一覧取得
+          const getComments = dispatch(fetchAsyncGetComments());
+          // お気に入り一覧取得
+          const getLikes = dispatch(fetchAsyncGetLikes());
+          await getProfs;
+          await getPosts;
+          await getComments;
+          await getLikes;
         }
-        // 投稿一覧取得
-        await dispatch(fetchAsyncGetPosts());
-        // profile一覧取得
-        await dispatch(fetchAsyncGetProfs());
-        // comment一覧取得
-        await dispatch(fetchAsyncGetComments());
+        // 認証状態をoff。
+        dispatch(fetchCredEnd());
       }
+      // 認証checkをtrue。
+      dispatch(fetchAuthChecked());
     };
     fetchBootLoader();
   }, [dispatch]);
@@ -121,66 +174,128 @@ const Core: React.FC = () => {
       {/* header */}
       <div className={styles.core_header}>
         <h1 className={styles.core_title}>Photo Views</h1>
-        {/* loginしている時(nicknameが存在する時)のみ表示 */}
-        {profile?.nickname ? (
-          <>
-            {/* 投稿button */}
-            <button
-              className={styles.core_btnModal}
-              onClick={() => {
-                // 新規投稿modalを開く
-                dispatch(setOpenNewPost());
-                dispatch(resetOpenProfile());
-              }}
-            >
-              <MdAddAPhoto />
-            </button>
-            <div className={styles.core_logout}>
-              {/* 投稿中 or 認証中の時、読み込み中の表示を出す。 */}
-              {(isLoadingPost || isLoadingAuth) && <CircularProgress />}
 
-              {/* logout button */}
-              <Button
-                onClick={() => {
-                  // JWTを削除
-                  localStorage.removeItem("localJWT");
-                  // nicknameが編集中の場合は空にする。
-                  dispatch(editNickname(""));
-                  // profile編集modalをoffにする。
-                  dispatch(resetOpenProfile());
-                  // 新規投稿modalをoffにする。
-                  dispatch(resetOpenNewPost());
-                  // login modalを開く。
-                  dispatch(setOpenLogin());
-                }}
-              >
-                ログアウト
-              </Button>
-              <button
-                className={styles.core_btnModal}
-                onClick={() => {
-                  dispatch(setOpenProfile());
-                  // 投稿用modalが開いていたらoff。
-                  dispatch(resetOpenNewPost());
-                }}
-              >
-                {/* アバター画像 */}
-                <StyledBadge
-                  overlap="circle"
-                  anchorOrigin={{
-                    vertical: "bottom",
-                    horizontal: "right",
+        {/* 認証check前(最初のrender直後)はmenu非表示 */}
+        {!isAuthChecked ? (
+          <div></div>
+        ) : profile?.nickname && !isLoadingAuth ? (
+          <>
+            {/* login時(nicknameが存在する時)かつ認証中でない場合、
+              投稿ポタンとアバターmenuを表示。 */}
+            <div className={styles.core_menu}>
+              {/* 投稿button */}
+              {/* api処理中はbuttonを非表示とし、読み込みマークを表示 */}
+              {!isLoadingPost ? (
+                <button
+                  className={styles.core_btnModal}
+                  onClick={() => {
+                    // profile modalが開いていたらoff。
+                    dispatch(resetOpenProfile());
+                    // 投稿modalをon。
+                    dispatch(setOpenNewPost());
                   }}
-                  variant="dot"
                 >
-                  <Avatar alt="who?" src={profile.img_profile} />{" "}
-                </StyledBadge>
-              </button>
+                  <MdAddAPhoto />
+                </button>
+              ) : (
+                <div className={styles.core_menu_postProgress}>
+                  <CircularProgress size={26} />
+                </div>
+              )}
+
+              {/* アバター画像ボタン */}
+              {/* api処理中はbuttonを非表示とし、読み込みマークを表示 */}
+              {!isLoadingProfile ? (
+                <div className={styles.core_menu_avatar}>
+                  <Button
+                    className={styles.core_btnModal}
+                    disabled={isLoadingAuth}
+                    ref={anchorRef}
+                    aria-controls={open ? "menu-list-grow" : undefined}
+                    aria-haspopup="true"
+                    onClick={handleToggle}
+                  >
+                    {/* アバター画像 */}
+                    <StyledBadge
+                      overlap="circle"
+                      anchorOrigin={{
+                        vertical: "bottom",
+                        horizontal: "right",
+                      }}
+                      variant="dot"
+                    >
+                      <Avatar alt="who?" src={profile.img_profile} />{" "}
+                    </StyledBadge>
+                  </Button>
+
+                  {/* listメニュー */}
+                  <Popper
+                    open={open}
+                    anchorEl={anchorRef.current}
+                    role={undefined}
+                    transition
+                    disablePortal
+                    // Popperの表示position
+                    // https://material-ui.com/ja/components/popper/#scroll-playground
+                    placement="bottom-end"
+                  >
+                    {({ TransitionProps }) => (
+                      <Grow {...TransitionProps}>
+                        <Paper>
+                          <ClickAwayListener onClickAway={handleClose}>
+                            <MenuList
+                              autoFocusItem={open}
+                              id="menu-list-grow"
+                              onKeyDown={handleListKeyDown}
+                            >
+                              {/* profile */}
+                              <MenuItem
+                                onClick={() => {
+                                  setOpen(false);
+                                  // 投稿modalが開いていたらoff。
+                                  dispatch(resetOpenNewPost());
+                                  // profile modalをon。
+                                  dispatch(setOpenProfile());
+                                }}
+                              >
+                                プロフィール
+                              </MenuItem>
+
+                              {/* logout */}
+                              <MenuItem
+                                onClick={() => {
+                                  setOpen(false);
+                                  // JWTを削除
+                                  localStorage.removeItem("localJWT");
+                                  // nicknameが編集中の場合は空にする。
+                                  dispatch(editNickname(""));
+                                  // profile編集modalをoffにする。
+                                  dispatch(resetOpenProfile());
+                                  // 新規投稿modalをoffにする。
+                                  dispatch(resetOpenNewPost());
+                                  // login modalを開く。
+                                  dispatch(setOpenLogin());
+                                }}
+                              >
+                                ログアウト
+                              </MenuItem>
+                            </MenuList>
+                          </ClickAwayListener>
+                        </Paper>
+                      </Grow>
+                    )}
+                  </Popper>
+                </div>
+              ) : (
+                <div className={styles.core_menu_profileProgress}>
+                  <CircularProgress size={26} />
+                </div>
+              )}
             </div>
           </>
         ) : (
-          // loginしていない時のみ表示
-          <div className={styles.core_header_menu}>
+          <div>
+            {/* loginしていない状態では、ログインと新規登録menuを表示。 */}
             <Button
               onClick={() => {
                 dispatch(setOpenLogin());
@@ -188,6 +303,7 @@ const Core: React.FC = () => {
                 // messageが表示されている場合を考慮し、submitのmessageを初期化。
                 dispatch(resetLoginError());
               }}
+              disabled={isLoadingAuth}
             >
               ログイン
             </Button>
@@ -199,6 +315,7 @@ const Core: React.FC = () => {
                 dispatch(resetRegisterCorrect());
                 dispatch(resetRegisterError());
               }}
+              disabled={isLoadingAuth}
             >
               新規登録
             </Button>
@@ -206,25 +323,34 @@ const Core: React.FC = () => {
         )}
       </div>
 
+      {/* 認証中の読み込み表示 */}
+      {isLoadingAuth && (
+        <>
+          <div className={styles.core_progress}>
+            <CircularProgress size={34} />
+          </div>
+          <p className={styles.core_progress_text}>Now Loading...</p>
+        </>
+      )}
+
       {/* 投稿一覧 */}
       {/* loginしている時だけ表示。 */}
-      {profile?.nickname && (
+      {isAuthChecked && profile?.nickname && (
         <>
           <div className={styles.core_posts}>
-            <Grid container spacing={4}>
+            <Grid container spacing={3}>
               {posts
                 .slice(0)
                 .reverse() // 最新の投稿を先頭に表示
                 .map((post) => (
-                  <Grid key={post.id} item xs={12} md={4}>
+                  <Grid key={post.id} item xs={12} sm={6} md={4} lg={3}>
                     {/* 投稿一覧 */}
                     <Post
                       postId={post.id}
                       title={post.title}
                       loginId={profile.user_id}
-                      userPost={post.userPost} // 投稿したuserのid
-                      imageUrl={post.img}
-                      liked={post.liked} // 投稿にいいねをしたuser idの配列
+                      userPost={post.user_id} // 投稿したuserのid
+                      imageUrl={post.img_post}
                     />
                   </Grid>
                 ))}

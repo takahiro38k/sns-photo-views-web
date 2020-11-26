@@ -12,7 +12,11 @@ import {
 } from "@material-ui/core";
 
 import { AppDispatch } from "../../app/store";
-import { fetchAsyncGetComments, fetchAsyncGetPosts } from "../post/postSlice";
+import {
+  fetchAsyncGetComments,
+  fetchAsyncGetLikes,
+  fetchAsyncGetPosts,
+} from "../post/postSlice";
 import styles from "./Auth.module.css";
 import {
   fetchAsyncCreateProf,
@@ -24,7 +28,6 @@ import {
   fetchCredStart,
   resetLoginError,
   resetOpenLogin,
-  resetOpenRegister,
   resetRegisterCorrect,
   resetRegisterError,
   selectIsLoadingAuth,
@@ -34,8 +37,6 @@ import {
   selectRegisterCorrect,
   selectRegisterError,
   setLoginError,
-  setOpenLogin,
-  setOpenRegister,
   setRegisterCorrect,
   setRegisterError,
 } from "./authSlice";
@@ -96,10 +97,11 @@ const Auth: React.FC = () => {
           // resetForm => formの初期化を実行できる。
           onSubmit={async (values, { resetForm }) => {
             // submitのmessageを初期化。
-            await dispatch(resetRegisterCorrect());
-            await dispatch(resetRegisterError());
+            dispatch(resetRegisterCorrect());
+            // error messageをクリア。
+            dispatch(resetRegisterError());
             // 認証状態をon。
-            await dispatch(fetchCredStart());
+            dispatch(fetchCredStart());
             // register
             const result = await dispatch(fetchAsyncRegister(values));
 
@@ -115,9 +117,7 @@ const Auth: React.FC = () => {
               ) {
                 // Emailがすでに登録されている場合。
                 // error messageをon。
-                await dispatch(setRegisterError());
-                // 認証状態をoff。
-                await dispatch(fetchCredEnd());
+                dispatch(setRegisterError());
               } else {
                 // 正常に登録できた場合。
                 // profile作成。nicknameはdefault値で"ユーザー"とする。login後、変更可能。
@@ -127,14 +127,14 @@ const Auth: React.FC = () => {
                     nickname: "ユーザー",
                   })
                 );
-                await dispatch(setRegisterCorrect());
+                // 正常終了messageをon。
+                dispatch(setRegisterCorrect());
                 // values(各formの値)を初期化
                 resetForm();
               }
             }
-
             // 認証状態をoff。
-            await dispatch(fetchCredEnd());
+            dispatch(fetchCredEnd());
           }}
           // Yup
           // https://github.com/jquense/yup
@@ -228,7 +228,7 @@ const Auth: React.FC = () => {
                   {/* loading and message */}
                   <div className={styles.auth_progress}>
                     {/* CircularProgress => loadingのanimation */}
-                    {isLoadingAuth && <CircularProgress />}
+                    {isLoadingAuth && <CircularProgress size={34} />}
                     {registerCorrect && (
                       <p className={styles.auth_submit_correct}>
                         登録しました。「ログイン」メニューからログインできます。
@@ -251,6 +251,9 @@ const Auth: React.FC = () => {
                   </Button>
 
                   <p className={styles.auth_paragraph}>
+                    アカウント登録済みの方は、右上の「ログイン」よりログインしてください。
+                  </p>
+                  {/* <p className={styles.auth_paragraph}>
                     アカウント登録済みの方は、下記よりログインしてください。
                   </p>
                   <span
@@ -265,7 +268,7 @@ const Auth: React.FC = () => {
                     }}
                   >
                     ログインはこちら
-                  </span>
+                  </span> */}
                 </div>
               </form>
             </div>
@@ -287,34 +290,61 @@ const Auth: React.FC = () => {
           initialErrors={{ email: "required" }}
           initialValues={{ email: "", password: "" }}
           onSubmit={async (values, { resetForm }) => {
-            // submitのmessageを初期化。
-            await dispatch(resetLoginError());
+            // const startTime = performance.now(); // 開始時間
             // 認証状態をon。
-            await dispatch(fetchCredStart());
+            dispatch(fetchCredStart());
+            // submitのmessageを初期化。
+            dispatch(resetLoginError());
             // login - JWT取得
             const result = await dispatch(fetchAsyncLogin(values));
 
             if (fetchAsyncLogin.fulfilled.match(result)) {
-              // login成功時
-              // profile一覧取得
-              await dispatch(fetchAsyncGetProfs());
-              // await dispatch(fetchAsyncGetPosts());
-              // await dispatch(fetchAsyncGetComments());
-              // profile取得
-              await dispatch(fetchAsyncGetMyProf());
-            } else {
-              // loginエラー時
-              await dispatch(setLoginError());
-              await dispatch(fetchCredEnd());
-              return;
-            }
+              // * login成功時
+              // modalを閉じる。
+              dispatch(resetOpenLogin());
+              // values(各formの値)を初期化
+              resetForm();
 
-            // 認証状態をoff。
-            await dispatch(fetchCredEnd());
-            // modalを閉じる。
-            await dispatch(resetOpenLogin());
-            // values(各formの値)を初期化
-            resetForm();
+              // // profile取得
+              // await dispatch(fetchAsyncGetMyProf());
+              // // profile一覧取得
+              // await dispatch(fetchAsyncGetProfs());
+              // // 投稿一覧取得
+              // await dispatch(fetchAsyncGetPosts());
+              // // comment一覧取得
+              // await dispatch(fetchAsyncGetComments());
+              // // お気に入り一覧取得
+              // await dispatch(fetchAsyncGetLikes());
+
+              // * 上記だと直列処理となりperformanceが悪いので、下記のとおり並列処理とする。
+              // https://qiita.com/rana_kualu/items/e6c5c0e4f60b0d18799d#lets-fix-the-examples
+              // profile取得
+              const getMyProf = dispatch(fetchAsyncGetMyProf());
+              // profile一覧取得
+              const getProfs = dispatch(fetchAsyncGetProfs());
+              // 投稿一覧取得
+              const getPosts = dispatch(fetchAsyncGetPosts());
+              // comment一覧取得
+              const getComments = dispatch(fetchAsyncGetComments());
+              // お気に入り一覧取得
+              const getLikes = dispatch(fetchAsyncGetLikes());
+              await getMyProf;
+              await getProfs;
+              await getPosts;
+              await getComments;
+              await getLikes;
+
+              // 認証状態をoff。
+              dispatch(fetchCredEnd());
+            } else {
+              // * login失敗時
+              // loginエラーを表示。
+              dispatch(setLoginError());
+              // 認証状態をoff。
+              dispatch(fetchCredEnd());
+            }
+            // const endTime = performance.now(); // 終了時間
+            // console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
           }}
           validationSchema={Yup.object().shape({
             email: Yup.string()
@@ -351,6 +381,7 @@ const Auth: React.FC = () => {
                     color="secondary"
                     size="large"
                     fullWidth
+                    disabled={isLoadingAuth}
                   >
                     <span className={styles.auth_guest_btn}>
                       ゲストとしてログイン
@@ -395,7 +426,7 @@ const Auth: React.FC = () => {
 
                   {/* loading and message */}
                   <div className={styles.auth_progress}>
-                    {isLoadingAuth && <CircularProgress />}
+                    {isLoadingAuth && <CircularProgress size={34} />}
                     {loginError && (
                       <p className={styles.auth_submit_error}>
                         ログインできませんでした。Eメールとパスワードを確認してください。
@@ -413,6 +444,9 @@ const Auth: React.FC = () => {
                   </Button>
 
                   <p className={styles.auth_paragraph}>
+                    アカウント未登録の方は、右上の「新規登録」より登録できます。
+                  </p>
+                  {/* <p className={styles.auth_paragraph}>
                     アカウント未登録の方は、下記より登録できます。
                   </p>
                   <span
@@ -428,7 +462,7 @@ const Auth: React.FC = () => {
                     }}
                   >
                     新規登録はこちら
-                  </span>
+                  </span> */}
                 </div>
               </form>
             </div>
