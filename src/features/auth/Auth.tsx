@@ -39,7 +39,16 @@ import {
   setLoginError,
   setRegisterCorrect,
   setRegisterError,
+  fetchCredGuestStart,
+  fetchCredGuestEnd,
+  selectIsGuestLoadingAuth,
 } from "./authSlice";
+
+// top階層の.envで環境変数を設定。
+// REACT_APP_ で定義したものを環境変数として使用できる。
+// ! ブラウザに反映するには yarn start のやり直しが必要。
+const guestEmail = process.env.REACT_APP_GUEST_EMAIL;
+const guestPass = process.env.REACT_APP_GUEST_PASS;
 
 // Modalのstyle
 const customStyles = {
@@ -66,11 +75,57 @@ const Auth: React.FC = () => {
   const openLogin = useSelector(selectOpenLogin);
   const openRegister = useSelector(selectOpenRegister);
   const isLoadingAuth = useSelector(selectIsLoadingAuth);
+  const isGuestLoadingAuth = useSelector(selectIsGuestLoadingAuth);
   const registerCorrect = useSelector(selectRegisterCorrect);
   const registerError = useSelector(selectRegisterError);
   const loginError = useSelector(selectLoginError);
 
   const dispatch: AppDispatch = useDispatch();
+
+  // guest用login処理
+  const guestOnSubmit = async () => {
+    const values = { email: guestEmail!, password: guestPass! };
+    // 認証状態をon。
+    dispatch(fetchCredStart());
+    // 認証状態をon(guest用)。
+    dispatch(fetchCredGuestStart());
+    // submitのmessageを初期化。
+    dispatch(resetLoginError());
+    // login - JWT取得
+    const result = await dispatch(fetchAsyncLogin(values));
+
+    if (fetchAsyncLogin.fulfilled.match(result)) {
+      // * login成功時
+      // modalを閉じる。
+      dispatch(resetOpenLogin());
+      // values(各formの値)を初期化
+      // * 並列処理。
+      // https://qiita.com/rana_kualu/items/e6c5c0e4f60b0d18799d#lets-fix-the-examples
+      // profile取得
+      const getMyProf = dispatch(fetchAsyncGetMyProf());
+      // profile一覧取得
+      const getProfs = dispatch(fetchAsyncGetProfs());
+      // 投稿一覧取得
+      const getPosts = dispatch(fetchAsyncGetPosts());
+      // comment一覧取得
+      const getComments = dispatch(fetchAsyncGetComments());
+      // お気に入り一覧取得
+      const getLikes = dispatch(fetchAsyncGetLikes());
+      await getMyProf;
+      await getProfs;
+      await getPosts;
+      await getComments;
+      await getLikes;
+    } else {
+      // * login失敗時
+      // loginエラーを表示。
+      dispatch(setLoginError());
+    }
+    // 認証状態をoff(guest用)。
+    dispatch(fetchCredGuestEnd());
+    // 認証状態をoff。
+    dispatch(fetchCredEnd());
+  };
 
   return (
     <>
@@ -333,16 +388,13 @@ const Auth: React.FC = () => {
               await getPosts;
               await getComments;
               await getLikes;
-
-              // 認証状態をoff。
-              dispatch(fetchCredEnd());
             } else {
               // * login失敗時
               // loginエラーを表示。
               dispatch(setLoginError());
-              // 認証状態をoff。
-              dispatch(fetchCredEnd());
             }
+            // 認証状態をoff。
+            dispatch(fetchCredEnd());
             // const endTime = performance.now(); // 終了時間
             // console.log(endTime - startTime); // 何ミリ秒かかったかを表示する
           }}
@@ -375,13 +427,24 @@ const Auth: React.FC = () => {
 
                   <p className={styles.auth_paragraph}>
                     アカウントを登録せずにご利用になる場合は、下記のボタンからゲストとしてログインしてください。
+                    <br />
+                    <span className={styles.auth_paragraphSpan}>
+                      ゲストアカウントは不特定多数の方がご利用になれますので、予期せぬデータ更新があり得ること、ご留意ください。
+                    </span>
                   </p>
+
+                  {/* loading */}
+                  <div className={styles.auth_progress}>
+                    {isGuestLoadingAuth && <CircularProgress size={34} />}
+                  </div>
+
                   <Button
                     variant="contained"
                     color="secondary"
                     size="large"
                     fullWidth
                     disabled={isLoadingAuth}
+                    onClick={guestOnSubmit}
                   >
                     <span className={styles.auth_guest_btn}>
                       ゲストとしてログイン
@@ -426,7 +489,9 @@ const Auth: React.FC = () => {
 
                   {/* loading and message */}
                   <div className={styles.auth_progress}>
-                    {isLoadingAuth && <CircularProgress size={34} />}
+                    {isLoadingAuth && !isGuestLoadingAuth && (
+                      <CircularProgress size={34} />
+                    )}
                     {loginError && (
                       <p className={styles.auth_submit_error}>
                         ログインできませんでした。Eメールとパスワードを確認してください。
@@ -437,7 +502,7 @@ const Auth: React.FC = () => {
                   <Button
                     variant="contained"
                     color="primary"
-                    disabled={!isValid || isSubmitting}
+                    disabled={!isValid || isSubmitting || isLoadingAuth}
                     type="submit"
                   >
                     ログイン

@@ -127,23 +127,25 @@ export const fetchAsyncGetProfs = createAsyncThunk("profiles/get", async () => {
 export const authSlice = createSlice({
   name: "auth",
   initialState: {
-    // login modal toggle
+    // login modal state
     // trueによって、login modalが初期表示される。
     openLogin: true,
-    // register modal toggle
+    // register modal state
     openRegister: false,
-    // register submit result toggle
+    // register submit result
     registerCorrect: false,
     registerError: false,
-    // login submit result toggle
+    // login submit result
     loginError: false,
-    // profile modal toggle
+    // profile modal state
     openProfile: false,
-    // api auth loading toggle
+    // api auth loading state
     isLoadingAuth: false,
-    // ブラウザ起動時のauth checkが済んだらtrue
+    // api auth loading state(guest用)
+    isGuestLoadingAuth: false,
+    // ブラウザ起動直後のauth checkが済んだらtrue
     isAuthChecked: false,
-    // profile apiアクセス中にtrue
+    // api profile loading state
     isLoadingProfile: false,
     myprofile: {
       id: 0,
@@ -174,6 +176,14 @@ export const authSlice = createSlice({
     },
     fetchCredEnd(state) {
       state.isLoadingAuth = false;
+    },
+
+    // api loading制御(guest用)
+    fetchCredGuestStart(state) {
+      state.isGuestLoadingAuth = true;
+    },
+    fetchCredGuestEnd(state) {
+      state.isGuestLoadingAuth = false;
     },
 
     // api auth check制御(ページを開いた直後のauth check)
@@ -299,6 +309,8 @@ export const {
   resetLoginError,
   fetchProfileStart,
   fetchProfileEnd,
+  fetchCredGuestStart,
+  fetchCredGuestEnd,
 } = authSlice.actions;
 
 // useSelectorでアクセスできるよう定義。
@@ -306,6 +318,8 @@ export const {
 // auth => src/app/store.tsのconfigureStore()で定義した名前
 export const selectIsLoadingAuth = (state: RootState) =>
   state.auth.isLoadingAuth;
+export const selectIsGuestLoadingAuth = (state: RootState) =>
+  state.auth.isGuestLoadingAuth;
 export const selectIsAuthChecked = (state: RootState) =>
   state.auth.isAuthChecked;
 export const selectOpenLogin = (state: RootState) => state.auth.openLogin;

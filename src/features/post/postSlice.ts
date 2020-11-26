@@ -7,6 +7,7 @@ import { PROPS_COMMENT, PROPS_LIKED, PROPS_NEWPOST } from "../types";
 
 // top階層の.envで環境変数を設定。
 // REACT_APP_ で定義したものを環境変数として使用できる。
+// ! ブラウザに反映するには yarn start のやり直しが必要。
 const apiUrlPost = `${process.env.REACT_APP_LARAVEL_API_URL}/api/posts`;
 const apiUrlComment = `${process.env.REACT_APP_LARAVEL_API_URL}/api/comments`;
 const apiUrlLike = `${process.env.REACT_APP_LARAVEL_API_URL}/api/likes`;
