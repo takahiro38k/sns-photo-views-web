@@ -29,6 +29,8 @@ const customStyles = {
   // modal以外の部分(背景)
   overlay: {
     backgroundColor: "#bbdbf3",
+    // Material-UIのiconなど、z-index設定がないとmodalより優先される要素が存在する。
+    zIndex: 100,
   },
   content: {
     top: "55%",

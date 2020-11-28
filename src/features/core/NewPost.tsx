@@ -12,7 +12,12 @@ import {
 import { File } from "../types";
 import styles from "./Core.module.css";
 
+// Modalのstyle
 const customStyles = {
+  overlay: {
+    // Material-UIのiconなど、z-index設定がないとmodalより優先される要素が存在する。
+    zIndex: 100,
+  },
   content: {
     top: "55%",
     left: "50%",
