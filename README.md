@@ -1,3 +1,46 @@
+## Photo Views とは？
+
+画像を投稿し、シェアできるアプリケーションです。
+
+Photo Views<br />
+https://photo-views.apps38k.work/
+
+### AWS構成図
+
+https://github.com/takahiro38k/sns-photo-views-api/blob/master/docs/AWS-photo_views.png
+
+### ER図
+
+https://github.com/takahiro38k/sns-photo-views-api/blob/master/docs/ERD-photo_views.png
+
+### ソースコード
+
+フロントエンド: https://github.com/takahiro38k/sns-photo-views-web<br />
+バックエンド（API）: https://github.com/takahiro38k/sns-photo-views-api
+
+### 言語
+
+PHP, TypeScript, HTML, CSS
+
+### データベース
+
+MySQL（AWS: RDS）
+
+### ライブラリ・フレームワーク
+
+Laravel, React, Redux Toolkit, axios, Formik, Yup, react-modal, Material-UI
+
+### プラットフォーム
+
+AWS: EC2, RDS, CloudFront, S3, ALB, Route 53<br />
+その他: Docker
+
+<br />
+<br />
+※以降は、Create React App にデフォルトで記載されている README.md の内容です。
+
+***
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app), using the [Redux](https://redux.js.org/) and [Redux Toolkit](https://redux-toolkit.js.org/) template.
 
 ## Available Scripts
