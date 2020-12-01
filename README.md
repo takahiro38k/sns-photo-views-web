@@ -1,8 +1,6 @@
 ## Photo Views とは？
 
-画像を投稿し、シェアできるアプリケーションです。
-
-Photo Views<br />
+画像を投稿し、シェアできるアプリケーションです。<br />
 https://photo-views.apps38k.work/
 
 ### AWS構成図
@@ -35,7 +33,6 @@ Laravel, React, Redux Toolkit, axios, Formik, Yup, react-modal, Material-UI
 AWS: EC2, RDS, CloudFront, S3, ALB, Route 53<br />
 その他: Docker
 
-<br />
 <br />
 ※以降は、Create React App にデフォルトで記載されている README.md の内容です。
 
