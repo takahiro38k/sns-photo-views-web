@@ -24,3 +24,5 @@ yarn-error.log*
 
 # 追加
 .env
+.env*
+

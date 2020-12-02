@@ -294,6 +294,13 @@ const Core: React.FC = () => {
         )}
       </div>
 
+      {/* body */}
+      <div className={styles.core_warning}>
+        <p className={styles.core_warningParagraph}>
+          ポートフォリオとして公開しているアプリケーションのため、予告なくデータを削除させていただく場合がございます。ご了承ください。
+        </p>
+      </div>
+
       {/* 認証中の読み込み表示 */}
       {isLoadingAuth && (
         <>

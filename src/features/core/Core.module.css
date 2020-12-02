@@ -92,3 +92,16 @@
   color: #2414bb;
   text-align: center;
 }
+
+.core_warning {
+  margin: 15px 15px 10px 15px;
+  padding: 5px 8px;
+  background-color: #cf5d5d;
+  border: #bb0d0d solid 1px;
+  border-radius: 8px;
+}
+
+.core_warningParagraph {
+  color: #ffffff;
+  font-weight: bold;
+}
